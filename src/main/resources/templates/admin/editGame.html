@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Manage Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --background: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--background);
+            color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .game-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        input, select {
+            padding: 0.8rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button[type="submit"] {
+            background: var(--success-color);
+            color: white;
+        }
+
+        button[type="submit"]:hover {
+            background: #219150;
+        }
+
+        .game-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-table th,
+        .game-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .game-table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        .game-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .type-indoor {
+            color: #e74c3c;
+        }
+
+        .type-outdoor {
+            color: #27ae60;
+        }
+
+        .back-btn {
+            background: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: #2980b9;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            padding: 1rem;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Edit Game</h2>
+
+    <form class="game-form" th:action="@{/admin/updateGame}" th:object="${game}" method="post">
+        <!-- Hidden field for ID to ensure it's passed along -->
+        <input type="hidden" th:field="*{id}" />
+
+        <!-- Game Name Field -->
+        <div class="form-group">
+            <label>Game Name:</label>
+            <input type="text" th:field="*{gameName}" required placeholder="Enter game name" />
+        </div>
+
+        <!-- Player Capacity Field -->
+        <div class="form-group">
+            <label>Player Capacity:</label>
+            <input type="number" th:field="*{playerCapacity}" required placeholder="Enter player capacity" />
+        </div>
+
+        <!-- Type Field -->
+        <div class="form-group">
+            <label>Type:</label>
+            <select th:field="*{type}">
+                <option value="Indoor" th:selected="${game.type == 'Indoor'}">Indoor</option>
+                <option value="Outdoor" th:selected="${game.type == 'Outdoor'}">Outdoor</option>
+            </select>
+        </div>
+
+        <!-- Update Button -->
+        <button type="submit">
+            <i class="fas fa-save"></i>
+            Update Game
+        </button>
+    </form>
+
+    <a href="/admin/game" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to Game List
+    </a>
+</div>
+
+
+
+</body>
+</html>
