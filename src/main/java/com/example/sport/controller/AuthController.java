@@ -88,7 +88,8 @@ public class AuthController {
     @PostMapping("/login")
     public String login(@RequestParam String email, 
                         @RequestParam String password, 
-                        HttpServletRequest request, 
+                        HttpServletRequest request,
+                        HttpSession session,
                         Model model,
                         HttpServletResponse response) {
 
@@ -102,7 +103,7 @@ public class AuthController {
             User user = userRepository.findByEmailAndPassword(email, password);
 
             if (user != null) {
-                HttpSession session = request.getSession(true);
+                
                 session.setAttribute("loggedInUser", user);
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("userRole", user.getRole().getRoleName());
@@ -115,7 +116,6 @@ public class AuthController {
                 return user.getRole().getRoleName().equalsIgnoreCase("ADMIN") ?
                     "redirect:/admin/dashboard" : "redirect:/user/dashboard";
             } else {
-                Thread.sleep(1000); // Delay to prevent brute force
                 model.addAttribute("error", "Invalid email or password");
                 return "login"; // Stay on login page with error message
             }

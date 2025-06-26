@@ -57,19 +57,17 @@ public class UserController {
     public String showProfile(@PathVariable Long id, Model model, HttpSession session) {
         User user = userService.getUserById(id);
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-
         if (loggedInUser == null) {
-            return "redirect:/login1";
+            return "login";
         }
 
         model.addAttribute("user", user);
-        model.addAttribute("loggedInUser", loggedInUser); // ✅ Add this
+        model.addAttribute("loggedInUser", loggedInUser);
         return "user/profile";
     }
 
 
     // Update User
- // 👉 Handle Profile Update
     @PostMapping("/updateProfile")
     public String updateProfile(@ModelAttribute("user") User user, Model model) {
         userService.updateUser(user); // Update user in DB
@@ -79,14 +77,14 @@ public class UserController {
         model.addAttribute("loggedInUser", updatedUser);
 
         // Redirect to user dashboard with updated user data
-        return "user/userDash"; // user/userDash.html
+        return "user/userDash";
     }
 
     // Show the registration form
     @GetMapping("/register1")
     public String showRegistrationForm(Model model) {
         model.addAttribute("user", new User());
-        return "user/register";  // The path to your register.html page
+        return "user/register"; 
     }
 
     // Handle the registration form submission
@@ -107,7 +105,7 @@ public class UserController {
         // Save new user
         userService.save(user);
 
-        return "redirect:/register1";  // Or to login page
+        return "login";
     }
 
     
