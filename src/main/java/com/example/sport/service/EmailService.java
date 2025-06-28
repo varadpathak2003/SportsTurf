@@ -20,8 +20,10 @@ public class EmailService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
         message.setTo(toEmail);
+        System.out.println("From Email : "+ fromEmail);
         message.setSubject("Your OTP for Booking");
         message.setText("Your OTP is: " + otp + "\nThis OTP is valid for 5 minutes.");
+        
         
         mailSender.send(message);
     }
