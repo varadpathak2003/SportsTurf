@@ -84,7 +84,7 @@ public class BookingController {
         return "user/booking";
     }
     
- // ✅ API to get games based on selected city
+ // API to get games based on selected city
     @GetMapping("/getGamesByCity")
     @ResponseBody
     public List<Map<String, Object>> getGamesByCity(@RequestParam String city) {
