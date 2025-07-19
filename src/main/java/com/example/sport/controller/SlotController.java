@@ -48,6 +48,7 @@ public class SlotController {
     @GetMapping
     public String showSlotPage(Model model) {
         List<Ground> grounds = groundService.getAllGrounds(); // Fetch grounds for dropdown
+        System.out.println("************"+grounds.toString());
         model.addAttribute("grounds", grounds);
         return "admin/slot"; // Redirect to slot.html in templates/admin/
     }
