@@ -72,7 +72,6 @@ public class GroundController {
             ground.setClosingTime(LocalTime.parse(closingTimeStr, formatter));
 
             // Step 4: Save ground
-            groundService.saveGround(ground);
 
             // Step 5: Save image
             if (!image.isEmpty()) {
@@ -80,13 +79,14 @@ public class GroundController {
                 Path path = Paths.get("src/main/resources/static/GroundImg/" + fileName);
                 Files.copy(image.getInputStream(), path);
                 ground.setImageFileName(fileName);
-                groundService.saveGround(ground);
             }
+            groundService.saveGround(ground);
 
             // Add success message
             redirectAttributes.addFlashAttribute("success", "Ground added successfully!");
 
         } catch (Exception e) {
+        	  e.printStackTrace(); 
             redirectAttributes.addFlashAttribute("error", "Something went wrong while adding the ground.");
         }
 
@@ -128,7 +128,7 @@ public class GroundController {
     public String saveGroundWithCoach(
             @ModelAttribute Ground ground,
             @RequestParam("image") MultipartFile file,
-            @RequestParam("coachId") Long coachId,
+            @RequestParam(value="coachId",defaultValue = "varad") Long coachId,
             @RequestParam("gameId") Long gameId) {  // ✅ Accept Game ID from form
         
         if (!file.isEmpty()) {

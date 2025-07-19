@@ -99,7 +99,7 @@ public class UserController {
         }
 
         // Set role
-        Role userRole = roleService.findById(2L);
+        Role userRole = roleService.findById(1L);
         user.setRole(userRole);
 
         // Save new user

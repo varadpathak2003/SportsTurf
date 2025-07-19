@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,23 +31,22 @@ public class AuthController {
     @Autowired
     private GroundService groundService;
     
-    @Autowired
-    private BookingService bookingService;
+    private final DashboardService dashboardService;
 
+    public AuthController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
 
-    @Autowired
-    private SlotService slotService;
     
     @GetMapping("/venue")
     public String showVenuePage(HttpSession session, Model model) {
         Object user = session.getAttribute("loggedInUser"); // or whatever your session key is
-
+        
         if (user != null) {
             // Optionally, pass any user info to the model
             model.addAttribute("user", user);
             return "user/userVenue";  // Loads userVenue.html (authenticated version)
         }
-
         return "user/venue"; // Loads venue.html (guest version)
     }
 
@@ -109,10 +107,6 @@ public class AuthController {
                 session.setAttribute("userRole", user.getRole().getRoleName());
                 session.setMaxInactiveInterval(30 * 60);
 
-                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-                response.setHeader("Pragma", "no-cache");
-                response.setHeader("X-Content-Type-Options", "nosniff");
-
                 return user.getRole().getRoleName().equalsIgnoreCase("ADMIN") ?
                     "redirect:/admin/dashboard" : "redirect:/user/dashboard";
             } else {
@@ -125,15 +119,10 @@ public class AuthController {
         }
     }
 
-
-
-    
-
-
     @GetMapping("/logout")
     public String logout(HttpSession session) {
     	session.invalidate();
-        return "redirect:/login1";
+       return showLoginPage();
     }
 
     @GetMapping("/user/dashboard")
@@ -155,12 +144,7 @@ public class AuthController {
         return "user/userDash";
     }
 
-    private final DashboardService dashboardService;
-
-    public AuthController(DashboardService dashboardService) {
-        this.dashboardService = dashboardService;
-    }
-
+  
     @GetMapping("/admin/dashboard")
     public String adminDashboard(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");

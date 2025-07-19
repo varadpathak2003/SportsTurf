@@ -16,7 +16,13 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Game {
 
-    @Id
+    public Game(String gameName, int playerCapacity, String type) {
+		this.gameName=gameName;
+		this.playerCapacity=playerCapacity;
+		this.type=type;
+	}
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

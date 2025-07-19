@@ -80,7 +80,7 @@ public class FinanceController {
          // Convert Long to String explicitly
             String popularGround = String.valueOf(bookingService.getMostPopularGroundByGameId(gameId));
 
-
+            System.out.println("***********////////*******/*/*/*/*//");
             // Add data to DTO
             bookingAnalysis.add(new BookingAnalysisDTO(gameName, totalBookings, totalRevenue, avgPrice, popularGround));
         }
