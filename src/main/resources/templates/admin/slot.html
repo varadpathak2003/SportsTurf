@@ -7,11 +7,131 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" th:href="@{/slot.css}">
+    <style>
+        /* Restored CSS Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2, h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        h2 i, h3 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        label i {
+            width: 20px;
+            color: #7f8c8d;
+        }
+        
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .time-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .time-display p {
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .time-display b {
+            color: #2c3e50;
+        }
+        
+        #slotContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .slot-card {
+            background: #e8f4fc;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .slot-card:hover {
+            background: #d4e6f7;
+        }
+        
+        .slot-card.selected {
+            background: #3498db;
+            color: white;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+    </style>
     <!-- Toastr CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-    <!-- Toastr JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -62,30 +182,37 @@
         </button>
     </div>
 
+    <!-- Toastr JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    
     <script>
     let selectedSlots = new Set();
 
     $(document).ready(function () {
-        $("#ground").change(updateGroundTimesAndSlots);
+        // Initialize with first ground if available
+        if ($("#ground option").length > 1) {
+            $("#ground").val($("#ground option:eq(1)").val()).trigger("change");
+        }
+
+        // Event handlers
+        $("#ground").change(function() {
+            const selectedOption = $(this).find("option:selected");
+            $("#openingTime").text(selectedOption.data("opening-time") || "N/A");
+            $("#closingTime").text(selectedOption.data("closing-time") || "N/A");
+            generateSlots();
+        });
+
         $("#breakTime, #slotHours").on("input", generateSlots);
     });
-
-    function updateGroundTimesAndSlots() {
-        const selectedOption = $(this).find("option:selected");
-        $("#openingTime").text(selectedOption.data("opening-time") || "N/A");
-        $("#closingTime").text(selectedOption.data("closing-time") || "N/A");
-        generateSlots();
-        selectedSlots.clear();
-    }
 
     function generateSlots() {
         const openingTime = $("#openingTime").text().trim();
         const closingTime = $("#closingTime").text().trim();
         const breakTime = $("#breakTime").val().trim();
-        const slotHours = parseInt($("#slotHours").val());
+        const slotHours = parseInt($("#slotHours").val()) || 1;
 
-        if (!openingTime || openingTime === "N/A" || !closingTime || closingTime === "N/A" || isNaN(slotHours) || slotHours <= 0) {
-            $("#slotContainer").html("<p>Please select a ground first and set valid duration</p>");
+        if (openingTime === "N/A" || closingTime === "N/A") {
+            $("#slotContainer").html("<p>Please select a ground first</p>");
             return;
         }
 
@@ -93,11 +220,56 @@
         renderSlots(slots);
     }
 
+    function calculateSlots(open, close, breakTime, duration) {
+        const slots = [];
+        let start = timeToMinutes(open);
+        const end = timeToMinutes(close);
+        let breakStart = null, breakEnd = null;
+
+        // Parse break time if exists
+        if (breakTime && breakTime.includes("-")) {
+            const [startBreak, endBreak] = breakTime.split("-").map(s => s.trim());
+            breakStart = timeToMinutes(startBreak);
+            breakEnd = timeToMinutes(endBreak);
+        }
+
+        // Generate slots
+        while (start + (duration * 60) <= end) {
+            // Skip break time
+            if (breakStart !== null && start >= breakStart && start < breakEnd) {
+                start = breakEnd;
+                continue;
+            }
+
+            const slotEnd = start + (duration * 60);
+            if (slotEnd <= end) {
+                slots.push({
+                    start: minutesToTime(start),
+                    end: minutesToTime(slotEnd)
+                });
+            }
+            start = slotEnd;
+        }
+
+        return slots;
+    }
+
+    function timeToMinutes(time) {
+        const [hours, mins] = time.split(":").map(Number);
+        return hours * 60 + mins;
+    }
+
+    function minutesToTime(minutes) {
+        const hrs = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+    }
+
     function renderSlots(slots) {
-        $("#slotContainer").empty();
+        const container = $("#slotContainer").empty();
         
         if (slots.length === 0) {
-            $("#slotContainer").append("<p>No available slots</p>");
+            container.append("<p>No available slots with current parameters</p>");
             return;
         }
 
@@ -106,88 +278,83 @@
                 <div class="slot-card" data-start="${slot.start}" data-end="${slot.end}">
                     ${slot.start} - ${slot.end}
                 </div>
-            `).click(toggleSlotSelection);
+            `).click(function() {
+                $(this).toggleClass("selected");
+                const slotId = `${$(this).data("start")}-${$(this).data("end")}`;
+                selectedSlots.has(slotId) ? selectedSlots.delete(slotId) : selectedSlots.add(slotId);
+            });
             
-            $("#slotContainer").append(slotElement);
+            container.append(slotElement);
         });
     }
-
-    function toggleSlotSelection() {
-        $(this).toggleClass("selected");
-        const slotId = `${$(this).data("start")}-${$(this).data("end")}`;
-        selectedSlots.has(slotId) ? selectedSlots.delete(slotId) : selectedSlots.add(slotId);
-    }
-
-    // Keep calculateSlots, convertToMinutes, convertToTime functions as they are
 
     function submitSlots() {
         const groundId = $("#ground").val();
         const breakTime = $("#breakTime").val().trim();
-        const basePrice = parseFloat($("#basePrice").val()) || 0;
-        const weekendPrice = basePrice + (parseFloat($("#weekendExtra").val()) || 0);
+        const slotHours = $("#slotHours").val();
+        const basePrice = $("#basePrice").val();
+        const weekendExtra = $("#weekendExtra").val();
 
-        if (!validateSubmission(groundId, breakTime)) return;
+        // Validation
+        if (!groundId) {
+            toastr.error("Please select a ground");
+            return;
+        }
+
+        if (breakTime && !/^([01]\d|2[0-3]):[0-5]\d - ([01]\d|2[0-3]):[0-5]\d$/.test(breakTime)) {
+            toastr.error("Please use HH:mm - HH:mm format for break time");
+            return;
+        }
 
         const slotsData = {
             groundId: groundId,
-            slots: getSelectedSlotsData(basePrice, weekendPrice, breakTime),
+            breakTime: breakTime,
+            slotHours: slotHours,
+            basePrice: basePrice,
+            weekendExtra: weekendExtra,
+            slots: getSelectedSlotsData()
         };
 
-        submitToServer(slotsData);
+        saveSlotConfiguration(slotsData);
     }
 
-    function validateSubmission(groundId, breakTime) {
-        if (!groundId) {
-            toastr.error("Please select a ground");
-            return false;
-        }
-        if (breakTime && !/^([01]\d|2[0-3]):[0-5]\d - ([01]\d|2[0-3]):[0-5]\d$/.test(breakTime)) {
-            toastr.error("Use HH:mm - HH:mm format for break time");
-            return false;
-        }
-        return true;
-    }
-
-    function getSelectedSlotsData(basePrice, weekendPrice, breakTime) {
+    function getSelectedSlotsData() {
         return $(".slot-card.selected").map(function() {
             return {
                 startTime: $(this).data("start"),
                 endTime: $(this).data("end"),
-                price: basePrice,
-                weekendPrice: weekendPrice,
-                availability: true,
-                breakTime: breakTime
+                price: parseFloat($("#basePrice").val()) || 0,
+                weekendPrice: (parseFloat($("#basePrice").val()) || 0) + (parseFloat($("#weekendExtra").val()) || 0),
+                availability: true
             };
         }).get();
     }
 
-    function submitToServer(slotsData) {
-        if (slotsData.slots.length === 0) {
-            toastr.error("Please select at least one slot");
-            return;
-        }
-
-        fetch("/admin/slots/submit", {
+    function saveSlotConfiguration(data) {
+        fetch("/admin/slots/save", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(slotsData)
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data)
         })
-        .then(handleResponse)
-        .catch(handleError);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            toastr.success("Slot configuration saved successfully");
+            // Optionally reload or update UI
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            toastr.error("Failed to save slot configuration");
+        });
     }
 
-    function handleResponse(response) {
-        if (response.ok) {
-            return response.text().then(msg => toastr.success(msg || "Slots saved successfully"));
-        }
-        response.text().then(msg => toastr.error(msg || "Error saving slots"));
-    }
-
-    function handleError(error) {
-        toastr.error("Network error: " + error.message);
-    }
-
-    // Toastr configuration (keep only one)
+    // Toastr configuration
     toastr.options = {
         closeButton: true,
         progressBar: true,

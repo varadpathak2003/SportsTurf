@@ -20,6 +20,10 @@ public class GroundService {
     public void saveGround(Ground ground) {
         groundRepository.save(ground);
     }
+    
+    public List<String> findDistinctCities(){
+    	return groundRepository.findCities();
+    }
 
     // Fetch all grounds
     public List<Ground> getAllGrounds() {

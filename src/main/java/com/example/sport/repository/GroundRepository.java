@@ -30,4 +30,7 @@ public interface GroundRepository extends JpaRepository<Ground, Long> {
 	 	List<Ground> findByGameId(Long gameId);
 	 	
 	 	Optional<Ground> findById(Long id);
+	 	
+	 	@Query(nativeQuery = true,value = "select distinct cities from grounds")
+		List<String> findCities();
 }

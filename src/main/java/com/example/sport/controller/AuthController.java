@@ -135,12 +135,10 @@ public class AuthController {
         
         // Fetch all games and ground locations dynamically
         List<Game> games = gameService.getAllGames();
-        List<Ground> grounds = groundService.getAllGrounds();
-        List<Ground> allGrounds = groundService.getAllGrounds();
+        List<Ground> grounds = groundService.getGroundsByCity(loggedInUser.getCity());
         model.addAttribute("loggedInUser", loggedInUser);
         model.addAttribute("games", games);
         model.addAttribute("grounds", grounds);
-        model.addAttribute("grounds", allGrounds); 
         return "user/userDash";
     }
 
@@ -148,7 +146,7 @@ public class AuthController {
     @GetMapping("/admin/dashboard")
     public String adminDashboard(HttpSession session, Model model) {
         User loggedInUser = (User) session.getAttribute("loggedInUser");
-
+        
         // Check if session exists
         if (loggedInUser == null) {
             return "redirect:/login1"; // Redirect if not logged in

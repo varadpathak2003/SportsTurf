@@ -790,7 +790,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
     <div class="container-fluid">
-        <a class="btn navbar-brand" onclick="redirectToDashboard()">
+        <a class="btn navbar-brand" th:href="@{/user/dashboard}">
             <i class="fas fa-futbol brand-icon"></i>
             BookMyTurf
         </a>
@@ -810,7 +810,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="btn nav-link" onclick="redirectToDashboard()">
+                    <a class="btn nav-link" th:href="@{/user/dashboard}">
                         <i class="fas fa-home"></i>
                         Home
                     </a>
@@ -854,12 +854,12 @@
 </nav>
 
 <!-- Improved toggle buttons with animations -->
-<button class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')">
+<!-- <button class="sidebar-toggle left-toggle" onclick="toggleSidebar('left')">
     <i class="fas fa-bars"></i>
 </button>
 <button class="sidebar-toggle right-toggle" onclick="toggleSidebar('right')">
     <i class="fas fa-calendar"></i>
-</button>
+</button> -->
 
 <input type="hidden" id="userId" value="${loggedInUser.id}">
 
@@ -893,14 +893,12 @@
                 </li>
 				<li th:each="game : ${games}">
 				    <a class="dropdown-item"
-				       href="#"
-				       th:text="${game.gameName}"
-				       th:attr="data-id=${game.id}, data-name=${game.gameName}"
-				       onclick="selectSport(this)">
+				       th:href="@{/venue(game=${game.gameName})}">
 				       <i class="fas fa-running"></i>
 				       <span th:text="${game.gameName}"></span>
 				    </a>
 				</li>
+
             </ul>
         </li>
     </ul>
@@ -908,15 +906,14 @@
    
     <!-- City Dropdown -->
 	<ul class="nav flex-column mt-3">
-	    <form th:action="@{/venue}" method="get">
-	        <button type="submit" class="dropdown-toggle" 
-	                
-	                aria-expanded="false">
-	            <i class="fas fa-city"></i>
-	            <span>Explore Ground</span>
-	            <i class="fas fa-chevron-down chevron ms-auto"></i>
-	        </button>
-	    </form>
+	   	<a th:href="@{/venue}" 
+		   class="nav-link explore-link" 
+		   style="text-decoration: none; display: flex; align-items: center;">
+		    <i class="fas fa-city"></i>
+		    <span style="margin-left: 8px;">Explore Ground</span>
+		    <i class="fas fa-chevron-right ms-auto" style="margin-left: auto;"></i>
+		</a>
+
 	</ul>
 	
 </div>
@@ -945,63 +942,6 @@
 	
     
     <script>
-		function selectSport(element) {
-		    const sportName = element.getAttribute("data-name");
-		    // Redirect to venue.html with selected sport in the query
-		    window.location.href = `/venue?game=${encodeURIComponent(sportName)}`;
-		}
-		function toggleSidebar(side) {
-		       const sidebar = document.querySelector(side === 'left' ? '.sidebar' : '.right-sidebar');
-		       sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' ? 
-		           `translateX(${side === 'left' ? '-100%' : '100%'})` : 
-		           'translateX(0px)';
-		   }
-    document.addEventListener("DOMContentLoaded", function () {
-        let cityItems = document.querySelectorAll(".dropdown-item");
-        let seenCities = new Set();
-
-        cityItems.forEach(item => {
-            let cityName = item.textContent.trim();
-            if (seenCities.has(cityName)) {
-                item.style.display = "none"; // Hide duplicate city
-            } else {
-                seenCities.add(cityName);
-            }
-        });
-    });
-    document.addEventListener("DOMContentLoaded", function () {
-        let userCity = document.getElementById("userCity").innerText.trim();
-        let groundsContainer = document.getElementById("groundsContainer");
-        let header = document.querySelector(".main-content h4"); // Select the <h4> header
-        let cards = Array.from(groundsContainer.getElementsByClassName("col-md-4"));
-        let hasGrounds = false;
-
-        cards.forEach(card => {
-            let groundCity = card.getAttribute("data-location").trim();
-            if (groundCity !== userCity) {
-                card.style.display = "none"; // Hide non-matching grounds
-            } else {
-                hasGrounds = true; // At least one ground found
-            }
-        });
-
-        // If no grounds are found, show message & hide <h4>
-        if (!hasGrounds) {
-            let noGroundMessage = document.createElement("div");
-            noGroundMessage.classList.add("no-ground-message");
-            noGroundMessage.innerHTML = `
-                <h5 class="text-center text-danger">No grounds available in your city.</h5>
-                <p class="text-center">Please search for grounds in other cities.</p>
-            `;
-            groundsContainer.appendChild(noGroundMessage);
-
-            // Hide the <h4> title
-            header.style.display = "none";
-        }
-    });
-
-
-
         // Dark Mode Toggle
         function toggleDarkMode() {
             document.body.setAttribute('data-theme', 
@@ -1009,130 +949,7 @@
             );
         }
 
-        
-                // Search filter for Sports
-        document.getElementById("searchSport").addEventListener("keyup", function () {
-            let filter = this.value.toUpperCase();
-            let items = document.querySelectorAll(".dropdown-menu li a");
 
-            items.forEach((item) => {
-                let text = item.textContent || item.innerText;
-                item.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            });
-        });
-
-        // Search filter for Cities
-        document.getElementById("searchCity").addEventListener("keyup", function () {
-            let filter = this.value.toUpperCase();
-            let items = document.querySelectorAll(".dropdown-menu li a");
-
-            items.forEach((item) => {
-                let text = item.textContent || item.innerText;
-                item.style.display = text.toUpperCase().indexOf(filter) > -1 ? "" : "none";
-            });
-        });
-
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            generateCalendar();
-            setupSearch('sportSearch', 'sportList');
-            setupSearch('citySearch', 'cityList');
-        });
-       
-	
-        function generateCalendar() {
-            const container = document.getElementById('calendarContainer');
-            container.innerHTML = '';
-            const today = new Date();
-            
-            // Generate 2 months starting from current
-            for(let i = 0; i < 2; i++) {
-                const date = new Date();
-                date.setMonth(date.getMonth() + i);
-                
-                const monthDiv = document.createElement('div');
-                monthDiv.className = 'calendar-month';
-                monthDiv.innerHTML = `
-                    <div class="calendar-header">
-                        <span>${date.toLocaleString('default', { month: 'long' })}</span>
-                        <span>${date.getFullYear()}</span>
-                    </div>
-                    <div class="calendar-grid"></div>
-                `;
-                
-                const grid = monthDiv.querySelector('.calendar-grid');
-                const daysInMonth = new Date(date.getFullYear(), date.getMonth()+1, 0).getDate();
-                const firstDay = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() || 7);
-                
-                // Add empty days for grid alignment
-                for(let d = 1; d < firstDay; d++) {
-                    grid.appendChild(createDayElement(''));
-                }
-
-                // Generate actual days
-                for(let d = 1; d <= daysInMonth; d++) {
-                    const day = createDayElement(d);
-                    const currentDate = new Date(date.getFullYear(), date.getMonth(), d);
-                    
-                    // Highlight today
-                    if(currentDate.toDateString() === today.toDateString()) {
-                        day.classList.add('today');
-                    }
-                    
-                    // Mark past dates
-                    if(currentDate < today && !(currentDate.toDateString() === today.toDateString())) {
-                        day.classList.add('past');
-                    }
-
-                    // Add events (5th, 10th, 23rd)
-                    if([5,10,23].includes(d)) {
-                        day.classList.add('event');
-                    }
-
-                    grid.appendChild(day);
-                }
-                
-                container.appendChild(monthDiv);
-            }
-        }
-
-        function createDayElement(day) {
-            const div = document.createElement('div');
-            div.className = 'calendar-day';
-            if(day) {
-                div.textContent = day;
-                div.title = 'Click to view availability';
-            }
-            return div;
-        }
-
-        // Initialize calendar
-        document.addEventListener('DOMContentLoaded', generateCalendar);
-		$.ajax({
-		    url: "/myBookings", // ✅ Make sure this is correct
-		    type: "GET", // ✅ Use GET
-		    success: function (data) {
-		        console.log("Loaded my bookings:", data);
-		    },
-		    error: function (xhr) {
-		        console.error("Error loading bookings:", xhr.responseText);
-		    }
-		});
-		function redirectToMyBookings() {
-		    let userId = document.getElementById("userId").value;
-		    
-		    if (!userId) {
-		        alert("User ID not found. Please log in again.");
-		        return;
-		    }
-
-		    window.location.href = "/bookingHistory/myBookings?userId=" + encodeURIComponent(userId);
-		}
-		 function redirectToDashboard() {
-			 window.location.href = '/user/dashboard'; // Match controller's @GetMapping path
-		}
-		
     </script>
     <script src="dash.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
